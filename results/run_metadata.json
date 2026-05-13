@@ -1,0 +1,12 @@
+{
+  "total_shots": 256,
+  "valid_shots": 84,
+  "valid_percentage": 32.81,
+  "classical_optimum_H": 1.7,
+  "quantum_best_H": 1.7,
+  "epsilon_percent": 0.0,
+  "hypothesis_met": true,
+  "optimal_states": [
+    "0101"
+  ]
+}
