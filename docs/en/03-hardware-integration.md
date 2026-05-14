@@ -14,6 +14,8 @@ In our mathematical model (QUBO), we defined a penalty for the conflict between 
 [[1, 7], [2, 3], [2, 8], [3, 4], [4, 5], [4, 10], [5, 11], [7, 8], [7, 13], ...]
 ```
 
+![Wukong chip topology and gate fidelities](../assets/Wukong_Qbits_info.png)
+
 Analysis revealed that **there is no direct physical connection between arbitrary qubits (e.g., qubits 0 and 3)**.
 
 **The Hardware Solution:** 
@@ -32,6 +34,8 @@ We established that access to real quantum processing power is strictly regulate
 
 2. **Quotas and Access Control:** 
    The `Quantum computer under maintenance` error encountered during batch submission is the system's standard response (HTTP 403 Forbidden) for accounts lacking extended industrial clearance (HPC Application Review). Physical QPU time is a scarce resource allocated via a strict quota system.
+
+![OriginQC Cloud platform — Wukong 180 chip](../assets/Origin_Quantum.png)
 
 ---
 

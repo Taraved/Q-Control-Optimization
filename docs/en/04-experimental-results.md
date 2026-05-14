@@ -21,7 +21,9 @@ Since access to the physical cryostat was restricted by the cloud provider (as d
 
 ## 2. Quantum Simulation (QAOA, p=1)
 
-The quantum algorithm successfully executed on the local simulator (Tier 3 Fallback) with the following results (shots = 256):
+> Results below were obtained on the OriginQC cloud platform (Tier 3 fallback — CPU simulator inside the cloud, after QPU and HPC rejections). A local run via Quick Start produces a statistically similar distribution with the same optimum `0101`.
+
+The quantum algorithm successfully executed on the OriginQC cloud platform with the following results (shots = 256):
 
 ```text
 🏆 Top-5 states from the quantum environment:
@@ -32,11 +34,13 @@ The quantum algorithm successfully executed on the local simulator (Tier 3 Fallb
    0101: 22 shots (8.6%)  [✅ VALID, Global Optimum]
 ```
 
+![QAOA execution on OriginQC cloud platform](../assets/Wukong_run.png)
+
 **Quantum Distribution Analysis:**
 
 We observe an effect of "amplitude blurring" (probability dispersion). The QAOA algorithm is variational. Due to the physical limitation of the circuit depth (only one layer, $p=1$) and the use of unoptimized starting angles $\gamma=0.5, \beta=0.3$, the wavefunction did not have enough cycles to completely "flow" into the global minimum.
 
-Nevertheless, **among all permissible (valid) states, the algorithm confidently isolated the absolute optimum `0101`**, while aggressively suppressing conflicting states (e.g., `1001`, which would cause a short circuit, got only 18 shots). The errors observed in the top 4 are purely algorithmic (insufficient circuit depth) rather than hardware-based.
+Nevertheless, **among all permissible (valid) states, the algorithm confidently isolated the absolute optimum `0101`**, while aggressively suppressing conflicting states (e.g., `1001`, which would cause a short circuit, got only 11 shots). The errors observed in the top 4 are purely algorithmic (insufficient circuit depth) rather than hardware-based.
 
 ---
 
@@ -48,19 +52,20 @@ Below is the complete distribution of all 256 shots, sorted by frequency:
 |-------|---------------------|--------------|-------|--------|----------------------|
 | `0111`| `[0, 1, 1, 1]`      | 53.200       | 30    | ❌ No  | Sum 3 != 2 |
 | `1110`| `[1, 1, 1, 0]`      | 53.500       | 27    | ❌ No  | Sum 3 != 2 |
-| `1101`| `[1, 1, 0, 1]`      | 152.900      | 24    | ❌ No  | Sum 3 != 2 |
-| `1011`| `[1, 0, 1, 1]`      | 153.600      | 24    | ❌ No  | Sum 3 != 2 |
+| `1101`| `[1, 1, 0, 1]`      | 152.900      | 24    | ❌ No  | Sum 3 != 2, SC 0↔3 |
+| `1011`| `[1, 0, 1, 1]`      | 153.600      | 24    | ❌ No  | Sum 3 != 2, SC 0↔3 |
 | `0101`| `[0, 1, 0, 1]`      | **1.700**    | **22**| **✅ Yes** | **Optimum** |
-| `1100`| `[1, 1, 0, 0]`      | 2.000        | 21    | ✅ Yes | Power loss > 1.7 |
-| `1010`| `[1, 0, 1, 0]`      | 2.700        | 20    | ✅ Yes | Power loss > 1.7 |
+| `1100`| `[1, 1, 0, 0]`      | 2.000        | 22    | ✅ Yes | Power loss > 1.7 |
 | `0110`| `[0, 1, 1, 0]`      | 2.300        | 19    | ✅ Yes | Power loss > 1.7 |
-| `1001`| `[1, 0, 0, 1]`      | 102.100      | 18    | ❌ No  | Short Circuit (0 & 3) |
-| `0011`| `[0, 0, 1, 1]`      | 2.400        | 11    | ✅ Yes | Power loss > 1.7 |
-| `1111`| `[1, 1, 1, 1]`      | 304.400      | 11    | ❌ No  | Sum 4 != 2 |
-| `0010`| `[0, 0, 1, 0]`      | 51.500       | 10    | ❌ No  | Sum 1 != 2 |
-| `0001`| `[0, 0, 0, 1]`      | 50.900       | 8     | ❌ No  | Sum 1 != 2 |
-| `0100`| `[0, 1, 0, 0]`      | 50.800       | 6     | ❌ No  | Sum 1 != 2 |
-| `1000`| `[1, 0, 0, 0]`      | 51.200       | 5     | ❌ No  | Sum 1 != 2 |
+| `1111`| `[1, 1, 1, 1]`      | 304.400      | 19    | ❌ No  | Sum 4 != 2, SC 0↔3 |
+| `1010`| `[1, 0, 1, 0]`      | 2.700        | 16    | ✅ Yes | Power loss > 1.7 |
+| `0011`| `[0, 0, 1, 1]`      | 2.400        | 13    | ✅ Yes | Power loss > 1.7 |
+| `0100`| `[0, 1, 0, 0]`      | 50.800       | 12    | ❌ No  | Sum 1 != 2 |
+| `1001`| `[1, 0, 0, 1]`      | 102.100      | 11    | ❌ No  | Short Circuit (0 & 3) |
+| `1000`| `[1, 0, 0, 0]`      | 51.200       | 6     | ❌ No  | Sum 1 != 2 |
+| `0001`| `[0, 0, 0, 1]`      | 50.900       | 6     | ❌ No  | Sum 1 != 2 |
+| `0010`| `[0, 0, 1, 0]`      | 51.500       | 3     | ❌ No  | Sum 1 != 2 |
+| `0000`| `[0, 0, 0, 0]`      | 200.000      | 2     | ❌ No  | Sum 0 != 2 |
 
 ---
 
@@ -68,9 +73,9 @@ Below is the complete distribution of all 256 shots, sorted by frequency:
 
 | Metric | Value |
 |--------|-------|
-| Total unique states found | 15 (out of 16) |
+| Total unique states found | 16 |
 | Total measurements (shots) | 256 |
-| Valid shots (Automation rules met) | 93 / 256 (36.3%) |
+| Valid shots (Automation rules met) | 92 / 256 (35.9%) |
 | Classical Optimum | $H = 1.700$ |
 | Best Valid Quantum Solution | $H = 1.700$ (State: `0101`) |
 | **Deviation ($\epsilon$)** | **0.0%** ✅ |

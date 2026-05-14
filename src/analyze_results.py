@@ -1,3 +1,12 @@
+"""
+analyze_results.py — Анализ и визуализация результатов квантового запуска.
+
+Загружает гистограмму измерений, проверяет ограничения,
+сравнивает с классическим оптимумом, вычисляет ε-метрику,
+строит график распределения состояний.
+
+Результат: results/analysis_results.json, results/comparison_plot.png
+"""
 import json
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,9 +14,20 @@ import os
 from itertools import product
 
 def decode_bitstring(bitstr, n_vars=4):
+    """Декодирует битстринг (напр. '0101') в список [0, 1, 0, 1]."""
     return[int(b) for b in bitstr.zfill(n_vars)]
 
 def check_constraints(solution, target_sum=2, conflict_indices=None):
+    """Проверяет, удовлетворяет ли решение ограничениям безопасности.
+    
+    Args:
+        solution: список бинарных значений [x0, x1, ...]
+        target_sum: требуемая сумма активных элементов
+        conflict_indices: tuple (i, j) — запрещённая пара
+    
+    Returns:
+        (is_valid: bool, message: str)
+    """
     if sum(solution) != target_sum:
         return False, f"Сумма {sum(solution)} != {target_sum}"
     
@@ -19,10 +39,29 @@ def check_constraints(solution, target_sum=2, conflict_indices=None):
     return True, "OK"
 
 def compute_H(solution, Q, offset):
+    """Вычисляет энергию Гамильтониана H = x^T Q x + offset."""
     x = np.array(solution)
     return (x @ Q @ x) + offset
 
 def analyze_results():
+    """Основная функция: загружает данные, анализирует, сравнивает с классикой,
+    вычисляет ε, строит график, сохраняет результаты."""
+    # Читаем конфигурацию для параметров ограничений
+    with open('data/config.json', 'r') as f:
+        config = json.load(f)
+    
+    # Извлекаем target_sum из equality_constraints
+    target_sum = 2
+    if config.get('equality_constraints'):
+        target_sum = config['equality_constraints'][0].get('target_sum', 2)
+    
+    # Извлекаем conflict_indices из inequality_constraints
+    conflict_indices = (0, 3)
+    for ic in config.get('inequality_constraints', []):
+        if ic.get('type') == 'mutual_exclusion':
+            conflict_indices = tuple(ic['indices'])
+            break
+    
     # Читаем именно файл, который отдает облачный скрипт
     with open('results/quantum_histogram_cloud.json') as f:
         hist = json.load(f)
@@ -55,7 +94,7 @@ def analyze_results():
     for bits, count in sorted_hist:
         x = decode_bitstring(bits, n_vars)
         H = compute_H(x, Q, offset)
-        is_valid, msg = check_constraints(x, target_sum=2, conflict_indices=(0, 3))
+        is_valid, msg = check_constraints(x, target_sum=target_sum, conflict_indices=conflict_indices)
         
         valid_str = "✅ Да" if is_valid else "❌ Нет"
         if is_valid:
@@ -76,7 +115,7 @@ def analyze_results():
     best_states = []
     for bits in product([0, 1], repeat=n_vars):
         x = list(bits)
-        is_valid, _ = check_constraints(x, target_sum=2, conflict_indices=(0, 3))
+        is_valid, _ = check_constraints(x, target_sum=target_sum, conflict_indices=conflict_indices)
         if is_valid:
             H_val = compute_H(x, Q, offset)
             if H_val < best_H:
@@ -121,7 +160,7 @@ def analyze_results():
     plt.figure(figsize=(10, 5))
     states = [bits for bits, _ in top_plot]
     counts =[count for _, count in top_plot]
-    colors =['green' if check_constraints(decode_bitstring(s, n_vars), 2, (0, 3))[0] 
+    colors =['green' if check_constraints(decode_bitstring(s, n_vars), target_sum, conflict_indices)[0] 
               else 'red' for s in states]
     
     bars = plt.bar(range(len(states)), counts, color=colors)
@@ -147,9 +186,9 @@ def analyze_results():
         "optimal_states": optimal_strings
     }
     
-    with open('results/run_metadata.json', 'w') as f:
+    with open('results/analysis_results.json', 'w') as f:
         json.dump(stats, f, indent=2)
-    print("✅ Метаданные сохранены в results/run_metadata.json")
+    print("✅ Метаданные сохранены в results/analysis_results.json")
     
     return stats
 

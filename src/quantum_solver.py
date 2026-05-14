@@ -1,5 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+quantum_solver.py — Квантовый решатель QAOA с трехуровневым резервированием.
+
+Triple-Tier Fallback Architecture:
+  Tier 1: OriginQC Wukong (72 superconducting qubits) — реальный QPU
+  Tier 2: OriginQC Cloud HPC (full_amplitude statevector simulator)
+  Tier 3: Local CPU Quantum Virtual Machine (CPUQVM)
+
+Особенности уровней:
+- Tier 1: batch-режим run([prog], shots), measure() ОБЯЗАТЕЛЕН
+- Tier 2: run(prog, qubits_to_calculate), measure() ЗАПРЕЩЁН (Pybind11)
+- Tier 3: run(prog, shots), measure() обязателен
+
+Результат: results/quantum_histogram_cloud.json, results/run_metadata.json
+"""
 import time
 import sys
 import json
@@ -8,7 +23,10 @@ import numpy as np
 
 def run_qaoa_on_real_chip(Q, api_key, shots=256, chip_name="origin_wukong"):
     """
-    1-й УРОВЕНЬ: Запуск QAOA на реальном квантовом чипе (QCloudService)
+    Tier 1: Запуск QAOA на реальном квантовом чипе через QCloudService.
+    
+    Требует batch-режим run([prog], shots), measure() обязателен.
+    При ошибке автоматически переключается на Tier 2 (cloud simulator).
     """
     t_start = time.time()
     machine_type = f"REAL_CHIP ({chip_name})"
@@ -79,7 +97,12 @@ def run_qaoa_on_real_chip(Q, api_key, shots=256, chip_name="origin_wukong"):
 
 def run_qaoa_cloud_simulator(Q, api_key, shots=256):
     """
-    2-й УРОВЕНЬ: Облачный суперкомпьютер Full Amplitude (Fallback 1)
+    Tier 2: Облачный суперкомпьютер Full Amplitude (Fallback 1).
+    
+    Statevector-симулятор на HPC. measure() ЗАПРЕЩЁН — вместо него
+    run(prog, qubits_to_calculate) через C++ Pybind11.
+    Возвращает вероятности, которые конвертируются в гистограмму.
+    При ошибке переключается на Tier 3 (local CPU).
     """
     t_start = time.time()
     machine_type = "CLOUD_SIMULATOR (full_amplitude)"
@@ -161,7 +184,10 @@ def run_qaoa_cloud_simulator(Q, api_key, shots=256):
 
 def run_qaoa_local_simulator(Q, shots=256):
     """
-    3-й УРОВЕНЬ: Локальный симулятор (Fallback 2, если всё облако недоступно/нет интернета)
+    Tier 3: Локальный CPU-симулятор (Fallback 2).
+    
+    CPUQVM — последний рубеж. Не требует API-ключа и интернета.
+    measure() обязателен, run(prog, shots) → result().get_counts().
     """
     from pyqpanda3.core import CPUQVM, QProg, H, CNOT, RZ, RX, measure
     

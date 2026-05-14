@@ -1,12 +1,34 @@
+"""
+qubo_builder.py — Генератор QUBO-матрицы из конфигурации.
+
+Формирует матрицу Q и константу смещения offset на основе:
+- Целевой функции (минимизация затрат)
+- Ограничений-равенств (Σx_i = target) со штрафами
+- Ограничений-неравенств (взаимное исключение) со штрафами
+
+Результат: data/Q_matrix.npy и data/qubo_offset.json
+"""
 import numpy as np
 import json
 import os
 
 def load_config(path='data/config.json'):
+    """Загружает конфигурацию задачи из JSON-файла."""
     with open(path, 'r') as f:
         return json.load(f)
 
 def build_qubo_matrix(cfg):
+    """
+    Строит QUBO-матрицу и константу смещения из конфигурации.
+    
+    Args:
+        cfg: словарь с ключами n_vars, objective_costs, equality_constraints,
+             inequality_constraints
+    
+    Returns:
+        Q: numpy-матрица (n x n) — квадратичные коэффициенты
+        offset: float — константа смещения Гамильтониана
+    """
     n = cfg['n_vars']
     Q = np.zeros((n, n))
     offset = 0.0  # Константа штрафа выносится отдельно!

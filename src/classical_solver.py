@@ -1,9 +1,30 @@
+"""
+classical_solver.py — Классический решатель полным перебором.
+
+Вычисляет эталонное (ground truth) решение задачи оптимизации
+с фильтрацией по ограничениям безопасности.
+Используется как baseline для сравнения с квантовым алгоритмом.
+
+Результат: results/classical_solution.npy
+"""
 import numpy as np
 import json
 import os
 from itertools import product
 
 def solve_bruteforce(Q, offset, config=None):
+    """
+    Полный перебор всех 2^n состояний с фильтрацией по ограничениям.
+    
+    Args:
+        Q: QUBO-матрица (n x n)
+        offset: константа смещения Гамильтониана
+        config: словарь конфигурации (опционально)
+    
+    Returns:
+        best_sol: numpy-массив — оптимальный бинарный вектор
+        best_val: float — минимальное значение H
+    """
     n = len(Q)
     
     if config is None:
@@ -43,6 +64,8 @@ def solve_bruteforce(Q, offset, config=None):
     return np.array(best_sol) if best_sol is not None else None, best_val
 
 def load_config_and_solve():
+    """Загружает QUBO-матрицу и конфигурацию, запускает полный перебор,
+    выводит и сохраняет результат."""
     with open('data/config.json', 'r') as f:
         config = json.load(f)
         

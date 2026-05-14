@@ -47,6 +47,8 @@ python src/quantum_solver.py    # 3. Execute QAOA (QPU/HPC/Local fallback)
 python src/analyze_results.py   # 4. Calculate ε-metric and visualize
 ```
 
+> **Note on reproducibility:** Due to the stochastic nature of quantum measurement, the exact shot distribution will vary between runs. The optimum `0101` and ε=0.0% are reproduced consistently. The reference histograms in the documentation reflect a benchmark run on the OriginQC cloud platform.
+
 ---
 
 ## 📚 Documentation (English)
