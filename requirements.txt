@@ -1,3 +1,5 @@
+# Та же связка, что в ноутбуке OriginQC (Python 3.9). Локально проверено на Python 3.11, macOS 13 arm64.
+# Ставить только готовыми пакетами:  pip install --only-binary=:all: -r requirements.txt
 numpy==1.26.4
-matplotlib==3.8.4
-pyqpanda3==0.3.5
+matplotlib>=3.7
+pyqpanda3==0.3.1

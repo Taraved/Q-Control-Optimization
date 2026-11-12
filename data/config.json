@@ -2,22 +2,19 @@
   "n_vars": 4,
   "objective_costs": [1.2, 0.8, 1.5, 0.9],
   "equality_constraints": [
-    {
-      "indices": [0, 1, 2, 3],
-      "target_sum": 2,
-      "penalty": 50.0
-    }
+    {"indices": [0, 1, 2, 3], "target_sum": 2, "penalty": 50.0}
   ],
   "inequality_constraints": [
-    {
-      "indices": [0, 3],
-      "penalty": 100.0,
-      "type": "mutual_exclusion"
-    }
+    {"indices": [0, 3], "penalty": 100.0, "type": "mutual_exclusion"}
   ],
-  "qaoa_params": {
-    "p": 1,
-    "gamma": 0.5,
-    "beta": 0.3
+  "experiment": {
+    "shots": 1000,
+    "xy_conflict_penalty": 1.0,
+    "legacy_angles": {"gamma": 0.5, "beta": 0.3},
+    "cloud_simulator": null,
+    "qpu_backend": "WK_C180_2",
+    "qpu_circuits": ["calib", "penalty_qaoa", "xy_qaoa"],
+    "qpu_amend": true,
+    "time_budget_sec": 35
   }
 }
